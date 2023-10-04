@@ -74,18 +74,6 @@ pipeline:
                           name: run test
                           identifier: run_test
                           spec:
-                            connectorRef: org.harness_community_dockerhub
-                            image: python:3.12
-                            shell: Sh
-                            command: cd test && pip3 install -r requirements.txt && python3 test.py
-                            envVariables:
-                              FF_SDK_KEY: <+secrets.getValue("API_KEYS")>
-                              RELAY_PROXY_ADDRESS: http://docker-proxy-1:7000
-                      - step:
-                          type: Run
-                          name: run test on host
-                          identifier: run_test_on_host
-                          spec:
                             shell: Sh
                             command: cd test && pip3 install -r requirements.txt && python3 test.py
                             envVariables:
