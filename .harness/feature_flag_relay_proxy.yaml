@@ -35,7 +35,6 @@ pipeline:
                             shell: Sh
                             command: cd docker && docker compose up
                             envVariables:
-                              test: test
                               ACCOUNT_IDENTIFIER: <+account.identifier>
                               ORG_IDENTIFIER: <+org.identifier>
                               ADMIN_SERVICE_TOKEN: <+secrets.getValue("ADMIN_SERVICE_TOKEN")>
@@ -47,7 +46,7 @@ pipeline:
                           identifier: test_health
                           spec:
                             shell: Sh
-                            command: "curl localhost:7000/health # | jq ."
+                            command: curl localhost:7000/health
                           failureStrategies:
                             - onFailure:
                                 errors:
