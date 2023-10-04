@@ -4,12 +4,12 @@ app: <+service.name.toLowerCase().replace("_", "-").replace(" ", "-")>
 image: <+artifact.image>
 port: <+serviceVariables.port>
 targetPort: <+serviceVariables.port>
-serviceType: <+ <+empty(serviceVariables.serviceType)> ? "NodePort" : <+serviceVariables.serviceType> >
+serviceType: "NodePort"
 replicas: <+serviceVariables.replicas>
 
 accountId: <+account.identifier>
 orgId: <+org.identifier>
 
-adminServiceToken: <+secrets.getValue("account.harness_api_token")>
-authSecret: <+secrets.getValue("authSecret")>
-apiKeys:  <+secrets.getValue("apiKeys")>
+adminServiceToken: <+secrets.getValue("ADMIN_SERVICE_TOKEN")>
+authSecret: <+secrets.getValue("AUTH_SECRET")>
+apiKeys:  <+secrets.getValue("API_KEYS")>
