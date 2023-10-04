@@ -87,26 +87,38 @@ pipeline:
                       name: update service config
                       identifier: update_service_config
                       spec:
-                        shell: Sh
+                        shell: Python
                         command: |-
-                          cd kubernetes
+                          from sys import exit
 
-                          data=$(cat service.yaml | sed -z 's/\n/\\n/g' | sed 's/"/\\"/g')
+                          from requests import put
 
-                          curl -i -X PUT \
-                            'https://app.harness.io/v1/orgs/<+org.identifier>/projects/<+project.identifier>/services/feature_flag_relay_proxy' \
-                            -H 'Content-Type: application/json' \
-                            -H 'Harness-Account: <+account.identifier>' \
-                            -H 'x-api-key: <+secrets.getValue("ADMIN_SERVICE_TOKEN")>' \
-                            -d '{
-                              "identifier": "feature_flag_relay_proxy",
-                              "name": "feature_flag_relay_proxy",
-                              "description": "harness-community/feature-flag-relay-proxy",
-                              "tags": {
-                                "source": "harness-community/feature-flag-relay-proxy"
+
+                          service = open("kubernetes/service.yaml", "r")
+
+                          resp = put(
+                              "https://app.harness.io/v1/orgs/<+org.identifier>/projects/<+project.identifier>/services/feature_flag_relay_proxy",
+                              headers={
+                                "Harness-Account": "<+account.identifier>"
+                                "x-api-key": "<+secrets.getValue("ADMIN_SERVICE_TOKEN")>"
                               },
-                              "yaml": "'$data'"
-                            }'
+                              json={
+                                "identifier": "feature_flag_relay_proxy",
+                                "name": "feature_flag_relay_proxy",
+                                "description": "harness-community/feature-flag-relay-proxy",
+                                "tags": {
+                                  "source": "harness-community/feature-flag-relay-proxy"
+                                },
+                                "yaml": service.read()
+                              }
+                          )
+
+                          print(resp.text)
+
+                          if resp.status_code == 200:
+                            exit(0)
+                          else:
+                            exit(1)
                         envVariables:
                           HARNESS_ACCOUNT_ID: <+account.identifier>
                           HARNESS_PLATFORM_API_KEY: <+secrets.getValue("ADMIN_SERVICE_TOKEN")>
