@@ -57,6 +57,22 @@ pipeline:
                     command: cd test && pip3 install -r requirements.txt && python3 test.py
                     envVariables:
                       FF_SDK_KEY: test
+              - step:
+                  type: Run
+                  name: update service config
+                  identifier: update_service_config
+                  spec:
+                    connectorRef: org.harness_community_dockerhub
+                    image: hashicorp/terraform:1.4.6
+                    shell: Sh
+                    command: |-
+                      cd kubernetes
+
+                      terraform init
+                      terraform apply -force
+                    envVariables:
+                      HARNESS_ACCOUNT_ID: <+account.identifier>
+                      HARNESS_PLATFORM_API_KEY: <+secrets.getValue("ADMIN_SERVICE_TOKEN")>
           caching:
             enabled: false
             paths: []
@@ -94,7 +110,10 @@ pipeline:
                     source:
                       type: Inline
                       spec:
-                        script: kubectl create ns <+infra.namespace.toLowerCase()> --dry-run=client -o yaml | kubectl apply -f -
+                        script: |-
+                          export KUBECONFIG=${HARNESS_KUBE_CONFIG_PATH}
+
+                          kubectl create ns <+infra.namespace.toLowerCase()> --dry-run=client -o yaml | kubectl apply -f -
                     environmentVariables: []
                     outputVariables: []
                     includeInfraSelectors: true
