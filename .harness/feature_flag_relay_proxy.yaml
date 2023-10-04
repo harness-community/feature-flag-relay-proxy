@@ -106,7 +106,7 @@ pipeline:
                               "tags": {
                                 "source": "harness-community/feature-flag-relay-proxy"
                               },
-                              "yaml": "'$(cat service.yaml)'"
+                              "yaml": "'$data'"
                             }'
                         envVariables:
                           HARNESS_ACCOUNT_ID: <+account.identifier>
