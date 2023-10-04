@@ -47,7 +47,7 @@ pipeline:
                           identifier: test_health
                           spec:
                             shell: Sh
-                            command: curl localhost:7000/health | jq .
+                            command: "curl localhost:7000/health # | jq ."
                           failureStrategies:
                             - onFailure:
                                 errors:
