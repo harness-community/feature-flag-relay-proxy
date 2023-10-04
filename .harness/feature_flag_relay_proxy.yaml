@@ -54,7 +54,7 @@ pipeline:
                     connectorRef: org.harness_community_dockerhub
                     image: python:3.12
                     shell: Sh
-                    command: cd test && pip3 install -r requirements.txt && python3 test/test.py
+                    command: cd test && pip3 install -r requirements.txt && python3 test.py
                     envVariables:
                       FF_SDK_KEY: test
           caching:
@@ -122,3 +122,5 @@ pipeline:
                 - AllErrors
               action:
                 type: StageRollback
+        when:
+          pipelineStatus: All
