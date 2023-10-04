@@ -78,6 +78,11 @@ pipeline:
                             command: cd test && pip3 install -r requirements.txt && python3 toggle_flag_validate.py
                             envVariables:
                               FF_SDK_KEY: <+secrets.getValue("API_KEYS")>
+                              HARNESS_ACCOUNT_IDENTIFIER: <+account.identifier>
+                              HARNESS_ORGANIZATION_ID: <+org.identifier>
+                              HARNESS_PROJECT_ID: <+project.identifier>
+                              HARNESS_ENVIRONMENT_ID: development
+                              HARNESS_PLATFORM_API_KEY: <+secrets.getValue("ADMIN_SERVICE_TOKEN")>
                   - step:
                       type: Run
                       name: update service config
