@@ -14,7 +14,7 @@ log.setLevel(DEBUG)
 
 def main():
     relay_proxy_address = getenv("RELAY_PROXY_ADDRESS", "http://localhost:7000")
-    log.info(f"connecting to prxy at {relay_proxy_address}")
+    log.info(f"connecting to proxy at {relay_proxy_address}")
 
     client = CfClient(
         getenv("FF_SDK_KEY"),
