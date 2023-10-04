@@ -12,8 +12,6 @@ services:
       AUTH_SECRET: ${AUTH_SECRET}
       REDIS_ADDRESS: redis:6379
       API_KEYS: ${API_KEYS}
-    volumes:
-      - proxy:/config
     ports:
       - 7000:${PORT:-7000}
 
