@@ -62,7 +62,7 @@ pipeline:
                                 action:
                                   type: Retry
                                   spec:
-                                    retryCount: 10
+                                    retryCount: 4
                                     retryIntervals:
                                       - 5s
                                     onRetryFailure:
