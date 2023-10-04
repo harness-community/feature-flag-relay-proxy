@@ -93,13 +93,12 @@ pipeline:
 
                           from requests import put
 
-
                           service = open("kubernetes/service.yaml", "r")
 
                           resp = put(
                               "https://app.harness.io/v1/orgs/<+org.identifier>/projects/<+project.identifier>/services/feature_flag_relay_proxy",
                               headers={
-                                "Harness-Account": "<+account.identifier>"
+                                "Harness-Account": "<+account.identifier>",
                                 "x-api-key": "<+secrets.getValue("ADMIN_SERVICE_TOKEN")>"
                               },
                               json={
