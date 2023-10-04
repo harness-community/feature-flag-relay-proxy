@@ -1,15 +1,15 @@
-import time
-import logging
+from logging import DEBUG
+from time import sleep
 from os import getenv
 
 from featureflags.evaluations.auth_target import Target
+from featureflags.config import with_events_url
+from featureflags.config import with_base_url
 from featureflags.client import CfClient
 from featureflags.util import log
-from featureflags.config import with_base_url
-from featureflags.config import with_events_url
 
 
-log.setLevel(logging.WARN)
+log.setLevel(DEBUG)
 
 
 def main():
@@ -30,7 +30,7 @@ def main():
 
     while True:
         log.info(client.bool_variation(getenv("FF_IDENTIFIER", "test"), target, False))
-        time.sleep(10)
+        sleep(10)
 
 
 if __name__ == "__main__":

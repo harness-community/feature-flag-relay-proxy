@@ -10,12 +10,16 @@ resources for deploying the relay proxy for harness feature flags
 
 `test` helpful scripts for testing the proxy
 
+`.harness` a harness pipeline that tests all these configurations
+
 # general guidance
 
 the three things you will need to deploy the relay proxy:
-- a harness api key with project viewer for the projects in which the proxy will cover
-  - a single relay proxy instance can cover any combination of projects under a single organization
-- server sdk keys for each environment you want the proxy to allow connections for
+
+- ADMIN_SERVICE_TOKEN: a harness api key with project viewer for the projects in which the proxy will cover
+  - a single relay proxy instance can cover any combination of projects under a single organization, so an org view key is reccomended
+- API_KEYS: server sdk keys for each environment you want the proxy to allow connections for
+  - when using multiple sdk keys, seperate them with a comma
 
 # further documentation
 
