@@ -11,180 +11,179 @@ pipeline:
         repoName: feature-flag-relay-proxy
         build: <+input>
   stages:
-    - parallel:
-        - stage:
-            name: docker
-            identifier: docker
-            type: CI
-            spec:
-              cloneCodebase: true
-              platform:
-                os: Linux
-                arch: Amd64
-              runtime:
-                type: Cloud
-                spec: {}
-              execution:
-                steps:
-                  - parallel:
-                      - step:
-                          type: Background
-                          name: compose up
-                          identifier: compose_up
-                          spec:
-                            shell: Sh
-                            command: cd docker && docker compose up
-                            envVariables:
-                              ACCOUNT_IDENTIFIER: <+account.identifier>
-                              ORG_IDENTIFIER: <+org.identifier>
-                              ADMIN_SERVICE_TOKEN: <+secrets.getValue("ADMIN_SERVICE_TOKEN")>
-                              AUTH_SECRET: <+secrets.getValue("AUTH_SECRET")>
-                              API_KEYS: <+secrets.getValue("API_KEYS")>
-                      - step:
-                          type: Run
-                          name: test health
-                          identifier: test_health
-                          spec:
-                            shell: Sh
-                            command: |
-                              curl -s localhost:7000/health
-
-                              curl -s localhost:7000/health | grep "healthy"
-
-                              curl -s localhost:7000/health | grep "CONNECTED"
-                          failureStrategies:
-                            - onFailure:
-                                errors:
-                                  - AllErrors
-                                action:
-                                  type: Retry
-                                  spec:
-                                    retryCount: 10
-                                    retryIntervals:
-                                      - 5s
-                                    onRetryFailure:
-                                      action:
-                                        type: MarkAsFailure
+    - stage:
+        name: docker
+        identifier: docker
+        type: CI
+        spec:
+          cloneCodebase: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - parallel:
                   - step:
-                      type: Run
-                      name: run test
-                      identifier: run_test
+                      type: Background
+                      name: compose up
+                      identifier: compose_up
                       spec:
                         shell: Sh
-                        command: cd test && pip3 install -r requirements.txt && python3 toggle_flag_validate.py
+                        command: cd docker && docker compose up
                         envVariables:
-                          FF_SDK_KEY: <+secrets.getValue("API_KEYS")>
-                          HARNESS_ACCOUNT_IDENTIFIER: <+account.identifier>
-                          HARNESS_ORGANIZATION_ID: <+org.identifier>
-                          HARNESS_PROJECT_ID: <+project.identifier>
-                          HARNESS_ENVIRONMENT_ID: development
-                          HARNESS_PLATFORM_API_KEY: <+secrets.getValue("ADMIN_SERVICE_TOKEN")>
+                          ACCOUNT_IDENTIFIER: <+account.identifier>
+                          ORG_IDENTIFIER: <+org.identifier>
+                          ADMIN_SERVICE_TOKEN: <+secrets.getValue("ADMIN_SERVICE_TOKEN")>
+                          AUTH_SECRET: <+secrets.getValue("AUTH_SECRET")>
+                          API_KEYS: <+secrets.getValue("API_KEYS")>
                   - step:
                       type: Run
-                      name: update service config
-                      identifier: update_service_config
+                      name: test health
+                      identifier: test_health
                       spec:
-                        shell: Python
-                        command: |-
-                          from sys import exit
+                        shell: Sh
+                        command: |
+                          curl -s localhost:7000/health
 
-                          from requests import put
+                          curl -s localhost:7000/health | grep "healthy"
 
-                          service = open("kubernetes/service.yaml", "r")
+                          curl -s localhost:7000/health | grep "CONNECTED"
+                      failureStrategies:
+                        - onFailure:
+                            errors:
+                              - AllErrors
+                            action:
+                              type: Retry
+                              spec:
+                                retryCount: 10
+                                retryIntervals:
+                                  - 5s
+                                onRetryFailure:
+                                  action:
+                                    type: MarkAsFailure
+              - step:
+                  type: Run
+                  name: run test
+                  identifier: run_test
+                  spec:
+                    shell: Sh
+                    command: cd test && pip3 install -r requirements.txt && python3 toggle_flag_validate.py
+                    envVariables:
+                      FF_SDK_KEY: <+secrets.getValue("API_KEYS")>
+                      HARNESS_ACCOUNT_IDENTIFIER: <+account.identifier>
+                      HARNESS_ORGANIZATION_ID: <+org.identifier>
+                      HARNESS_PROJECT_ID: <+project.identifier>
+                      HARNESS_ENVIRONMENT_ID: development
+                      HARNESS_PLATFORM_API_KEY: <+secrets.getValue("ADMIN_SERVICE_TOKEN")>
+              - step:
+                  type: Run
+                  name: update service config
+                  identifier: update_service_config
+                  spec:
+                    shell: Python
+                    command: |-
+                      from sys import exit
 
-                          resp = put(
-                              "https://app.harness.io/v1/orgs/<+org.identifier>/projects/<+project.identifier>/services/feature_flag_relay_proxy",
-                              headers={
-                                "Harness-Account": "<+account.identifier>",
-                                "x-api-key": "<+secrets.getValue("ADMIN_SERVICE_TOKEN")>"
-                              },
-                              json={
-                                "identifier": "feature_flag_relay_proxy",
-                                "name": "feature_flag_relay_proxy",
-                                "description": "harness-community/feature-flag-relay-proxy",
-                                "tags": {
-                                  "source": "harness-community/feature-flag-relay-proxy"
-                                },
-                                "yaml": service.read()
-                              }
-                          )
+                      from requests import put
 
-                          print(resp.text)
+                      service = open("kubernetes/service.yaml", "r")
 
-                          if resp.status_code == 200:
-                            exit(0)
-                          else:
-                            exit(1)
-                        envVariables:
-                          HARNESS_ACCOUNT_ID: <+account.identifier>
-                          HARNESS_PLATFORM_API_KEY: <+secrets.getValue("ADMIN_SERVICE_TOKEN")>
-              caching:
-                enabled: false
-                paths: []
-        - stage:
-            name: kubernetes
-            identifier: kubernetes
-            description: ""
-            type: Deployment
-            spec:
-              deploymentType: Kubernetes
-              service:
-                serviceRef: feature_flag_relay_proxy
-                serviceInputs:
-                  serviceDefinition:
-                    type: Kubernetes
-                    spec:
-                      artifacts:
-                        primary:
-                          primaryArtifactRef: <+input>
-                          sources: <+input>
-              environment:
-                environmentRef: development
-                deployToAll: false
-                infrastructureDefinitions:
-                  - identifier: gcp
-              execution:
-                steps:
-                  - step:
-                      type: ShellScript
-                      name: create namespace
-                      identifier: create_namespace
+                      resp = put(
+                          "https://app.harness.io/v1/orgs/<+org.identifier>/projects/<+project.identifier>/services/feature_flag_relay_proxy",
+                          headers={
+                            "Harness-Account": "<+account.identifier>",
+                            "x-api-key": "<+secrets.getValue("ADMIN_SERVICE_TOKEN")>"
+                          },
+                          json={
+                            "identifier": "feature_flag_relay_proxy",
+                            "name": "feature_flag_relay_proxy",
+                            "description": "harness-community/feature-flag-relay-proxy",
+                            "tags": {
+                              "source": "harness-community/feature-flag-relay-proxy"
+                            },
+                            "yaml": service.read()
+                          }
+                      )
+
+                      print(resp.text)
+
+                      if resp.status_code == 200:
+                        exit(0)
+                      else:
+                        exit(1)
+                    envVariables:
+                      HARNESS_ACCOUNT_ID: <+account.identifier>
+                      HARNESS_PLATFORM_API_KEY: <+secrets.getValue("ADMIN_SERVICE_TOKEN")>
+          caching:
+            enabled: false
+            paths: []
+    - stage:
+        name: kubernetes
+        identifier: kubernetes
+        description: ""
+        type: Deployment
+        spec:
+          deploymentType: Kubernetes
+          service:
+            serviceRef: feature_flag_relay_proxy
+            serviceInputs:
+              serviceDefinition:
+                type: Kubernetes
+                spec:
+                  artifacts:
+                    primary:
+                      primaryArtifactRef: <+input>
+                      sources: <+input>
+          environment:
+            environmentRef: development
+            deployToAll: false
+            infrastructureDefinitions:
+              - identifier: gcp
+          execution:
+            steps:
+              - step:
+                  type: ShellScript
+                  name: create namespace
+                  identifier: create_namespace
+                  spec:
+                    shell: Bash
+                    onDelegate: true
+                    source:
+                      type: Inline
                       spec:
-                        shell: Bash
-                        onDelegate: true
-                        source:
-                          type: Inline
-                          spec:
-                            script: |-
-                              export KUBECONFIG=${HARNESS_KUBE_CONFIG_PATH}
+                        script: |-
+                          export KUBECONFIG=${HARNESS_KUBE_CONFIG_PATH}
 
-                              kubectl create ns <+infra.namespace.toLowerCase()> --dry-run=client -o yaml # | kubectl apply -f -
-                        environmentVariables: []
-                        outputVariables: []
-                        includeInfraSelectors: true
-                      timeout: 10m
-                  - step:
-                      name: Rollout Deployment
-                      identifier: rolloutDeployment
-                      type: K8sRollingDeploy
-                      timeout: 10m
-                      spec:
-                        skipDryRun: false
-                        pruningEnabled: false
-                rollbackSteps:
-                  - step:
-                      name: Rollback Rollout Deployment
-                      identifier: rollbackRolloutDeployment
-                      type: K8sRollingRollback
-                      timeout: 10m
-                      spec:
-                        pruningEnabled: false
-            tags: {}
-            failureStrategies:
-              - onFailure:
-                  errors:
-                    - AllErrors
-                  action:
-                    type: StageRollback
-            when:
-              pipelineStatus: All
+                          kubectl create ns <+infra.namespace.toLowerCase()> --dry-run=client -o yaml # | kubectl apply -f -
+                    environmentVariables: []
+                    outputVariables: []
+                    includeInfraSelectors: true
+                  timeout: 10m
+              - step:
+                  name: Rollout Deployment
+                  identifier: rolloutDeployment
+                  type: K8sRollingDeploy
+                  timeout: 10m
+                  spec:
+                    skipDryRun: false
+                    pruningEnabled: false
+            rollbackSteps:
+              - step:
+                  name: Rollback Rollout Deployment
+                  identifier: rollbackRolloutDeployment
+                  type: K8sRollingRollback
+                  timeout: 10m
+                  spec:
+                    pruningEnabled: false
+        tags: {}
+        failureStrategies:
+          - onFailure:
+              errors:
+                - AllErrors
+              action:
+                type: StageRollback
+        when:
+          pipelineStatus: Success
