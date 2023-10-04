@@ -9,7 +9,10 @@ pipeline:
       codebase:
         connectorRef: org.harness_community_github
         repoName: feature-flag-relay-proxy
-        build: <+input>
+        build:
+          type: branch
+          spec:
+            branch: feat/pipeline
   stages:
     - parallel:
         - stage:
