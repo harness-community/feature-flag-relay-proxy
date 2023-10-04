@@ -132,7 +132,7 @@ pipeline:
             spec:
               deploymentType: Kubernetes
               service:
-                serviceRef: featureflagrelayproxy
+                serviceRef: feature_flag_relay_proxy
                 serviceInputs:
                   serviceDefinition:
                     type: Kubernetes
