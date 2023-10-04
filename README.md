@@ -14,7 +14,7 @@ resources for deploying the relay proxy for harness feature flags
 
 # general guidance
 
-the three things you will need to deploy the relay proxy:
+the two things you will need to deploy the relay proxy:
 
 - ADMIN_SERVICE_TOKEN: a harness api key with project viewer for the projects in which the proxy will cover
   - a single relay proxy instance can cover any combination of projects under a single organization, so an org view key is reccomended
