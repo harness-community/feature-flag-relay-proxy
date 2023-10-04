@@ -49,7 +49,12 @@ pipeline:
                           identifier: test_health
                           spec:
                             shell: Sh
-                            command: curl localhost:7000/health
+                            command: |
+                              curl -s localhost:7000/health
+
+                              curl -s localhost:7000/health | grep "healthy"
+
+                              curl -s localhost:7000/health | grep "CONNECTED"
                           failureStrategies:
                             - onFailure:
                                 errors:
