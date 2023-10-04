@@ -3,6 +3,9 @@ service:
   identifier: featureflagrelayproxy
   orgIdentifier: Harness_Community
   projectIdentifier: Feature_Flags
+  description: example service for deploying the relay proxy
+  tags:
+    source: harness-community/feature-flag-relay-proxy
   serviceDefinition:
     spec:
       manifests:
@@ -37,15 +40,12 @@ service:
       variables:
         - name: port
           type: String
-          description: ""
+          description: sdk connection port
           required: true
           value: "7000"
         - name: replicas
           type: String
-          description: ""
+          description: number of pods
           required: true
           value: "2"
     type: Kubernetes
-  description: example service for deploying the relay proxy
-  tags:
-    source: harness-community/feature-flag-relay-proxy

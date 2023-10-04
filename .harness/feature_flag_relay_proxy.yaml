@@ -92,8 +92,8 @@ pipeline:
                         command: |-
                           cd kubernetes
 
-                          data=$(cat service.yaml)
-
+                          data=$(cat service.yaml | sed -z 's/\n/\\n/g' | sed 's/"/\\"/g')
+                          
                           curl -i -X PUT \
                             'https://app.harness.io/v1/orgs/<+org.identifier>/projects/<+project.identifier>/services/feature_flag_relay_proxy' \
                             -H 'Content-Type: application/json' \
