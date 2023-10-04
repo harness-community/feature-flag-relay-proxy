@@ -47,7 +47,7 @@ def get_falg_value(client: CfClient, flag: str, target: Target):
     flag_value = client.bool_variation(flag, target, None)
     if flag_value == None:
         log.error("flag failed to resolve")
-        # exit(1)
+        exit(1)
 
     return flag_value
 
