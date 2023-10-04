@@ -62,7 +62,7 @@ pipeline:
                                 action:
                                   type: Retry
                                   spec:
-                                    retryCount: 4
+                                    retryCount: 10
                                     retryIntervals:
                                       - 5s
                                     onRetryFailure:
@@ -78,7 +78,7 @@ pipeline:
                         shell: Sh
                         command: cd test && pip3 install -r requirements.txt && python3 test.py
                         envVariables:
-                          FF_SDK_KEY: test
+                          FF_SDK_KEY: <+secrets.getValue("API_KEYS")>
                   - step:
                       type: Run
                       name: update service config
