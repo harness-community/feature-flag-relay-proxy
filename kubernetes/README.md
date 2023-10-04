@@ -6,9 +6,9 @@ deploy the relay proxy to kubernetes using this manifest
 
 there is an example `values.yaml` included
 
-## redis.yaml
+## redis
 
-example redis deployment for kubernetes
+use the redis helm chart to provision redis if deploying for production
 
 ## service.yaml
 

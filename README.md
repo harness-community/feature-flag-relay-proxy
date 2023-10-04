@@ -4,10 +4,19 @@ resources for deploying the relay proxy for harness feature flags
 
 # what is included
 
-`service.yaml`: example harness service
+`docker` resources for deploying the proxy with docker
 
-`deploy/`: manifest and value file
+`kubernetes` resources for deploying the proxy with kubernetes
 
-# what is not included
+`test` helpful scripts for testing the proxy
 
-redis should be used in any production deployment of the relay proxy, you should deploy redis according to your company's standards
+# general guidance
+
+the three things you will need to deploy the relay proxy:
+- a harness api key with project viewer for the projects in which the proxy will cover
+  - a single relay proxy instance can cover any combination of projects under a single organization
+- server sdk keys for each environment you want the proxy to allow connections for
+
+# further documentation
+
+[Read more docs from the relay proxy source repository](https://github.com/harness/ff-proxy/blob/main/docs/configuration.md)

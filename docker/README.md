@@ -2,8 +2,6 @@
 
 ## docker-compose.yml
 
-deploy the relay proxy user docker
-
-change setting via `.env`
+deploy the relay proxy using docker
 
 redis is included
