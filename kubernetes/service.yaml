@@ -1,6 +1,6 @@
 service:
-  name: feature-flag-relay-proxy
-  identifier: featureflagrelayproxy
+  name: feature_flag_relay_proxy
+  identifier: feature_flag_relay_proxy
   orgIdentifier: Harness_Community
   projectIdentifier: Feature_Flags
   description: example service for deploying the relay proxy
