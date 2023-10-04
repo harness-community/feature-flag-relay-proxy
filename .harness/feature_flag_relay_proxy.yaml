@@ -1,0 +1,57 @@
+pipeline:
+  name: feature-flag-relay-proxy
+  identifier: feature_flag_relay_proxy
+  projectIdentifier: Feature_Flags
+  orgIdentifier: Harness_Community
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: org.harness_community_github
+        repoName: feature-flag-relay-proxy
+        build: <+input>
+  stages:
+    - stage:
+        name: docker
+        identifier: docker
+        type: CI
+        spec:
+          cloneCodebase: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: Background
+                  name: compose up
+                  identifier: compose_up
+                  spec:
+                    shell: Sh
+                    command: docker compose up
+              - step:
+                  type: Run
+                  name: test health
+                  identifier: test_health
+                  spec:
+                    shell: Sh
+                    command: curl localhost:7000/health | jq .
+              - step:
+                  type: Run
+                  name: run test
+                  identifier: run_test
+                  spec:
+                    connectorRef: org.harness_community_dockerhub
+                    image: python:3.12
+                    shell: Sh
+                    command: python3 tests/test.py
+                    envVariables:
+                      FF_SDK_KEY: test
+          sharedPaths:
+            - /var/run
+          caching:
+            enabled: false
+            paths: []
