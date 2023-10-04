@@ -102,9 +102,9 @@ pipeline:
                             -d '{
                               "identifier": "feature_flag_relay_proxy",
                               "name": "feature_flag_relay_proxy",
-                              "description": "exmaple service for deploying the relay proxy",
+                              "description": "harness-community/feature-flag-relay-proxy",
                               "tags": {
-                                "source": "https://github.com/harness-community/feature-flag-relay-proxy"
+                                "source": "harness-community/feature-flag-relay-proxy"
                               },
                               "yaml": "'$(cat service.yaml)'"
                             }'
