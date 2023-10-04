@@ -11,135 +11,150 @@ pipeline:
         repoName: feature-flag-relay-proxy
         build: <+input>
   stages:
-    - stage:
-        name: docker
-        identifier: docker
-        type: CI
-        spec:
-          cloneCodebase: true
-          platform:
-            os: Linux
-            arch: Amd64
-          runtime:
-            type: Cloud
-            spec: {}
-          execution:
-            steps:
-              - step:
-                  type: Background
-                  name: compose up
-                  identifier: compose_up
-                  spec:
-                    shell: Sh
-                    command: cd docker && docker compose up
-                    envVariables:
-                      test: test
-                      ACCOUNT_IDENTIFIER: <+account.identifier>
-                      ORG_IDENTIFIER: <+org.identifier>
-                      ADMIN_SERVICE_TOKEN: <+secrets.getValue("ADMIN_SERVICE_TOKEN")>
-                      AUTH_SECRET: <+secrets.getValue("AUTH_SECRET")>
-                      API_KEYS: <+secrets.getValue("API_KEYS")>
-              - step:
-                  type: Run
-                  name: test health
-                  identifier: test_health
-                  spec:
-                    shell: Sh
-                    command: curl localhost:7000/health | jq .
-              - step:
-                  type: Run
-                  name: run test
-                  identifier: run_test
-                  spec:
-                    connectorRef: org.harness_community_dockerhub
-                    image: python:3.12
-                    shell: Sh
-                    command: cd test && pip3 install -r requirements.txt && python3 test.py
-                    envVariables:
-                      FF_SDK_KEY: test
-              - step:
-                  type: Run
-                  name: update service config
-                  identifier: update_service_config
-                  spec:
-                    connectorRef: org.harness_community_dockerhub
-                    image: hashicorp/terraform:1.4.6
-                    shell: Sh
-                    command: |-
-                      cd kubernetes
-
-                      terraform init
-                      terraform apply -force
-                    envVariables:
-                      HARNESS_ACCOUNT_ID: <+account.identifier>
-                      HARNESS_PLATFORM_API_KEY: <+secrets.getValue("ADMIN_SERVICE_TOKEN")>
-          caching:
-            enabled: false
-            paths: []
-    - stage:
-        name: kubernetes
-        identifier: kubernetes
-        description: ""
-        type: Deployment
-        spec:
-          deploymentType: Kubernetes
-          service:
-            serviceRef: featureflagrelayproxy
-            serviceInputs:
-              serviceDefinition:
-                type: Kubernetes
-                spec:
-                  artifacts:
-                    primary:
-                      primaryArtifactRef: <+input>
-                      sources: <+input>
-          environment:
-            environmentRef: development
-            deployToAll: false
-            infrastructureDefinitions:
-              - identifier: gcp
-          execution:
-            steps:
-              - step:
-                  type: ShellScript
-                  name: create namespace
-                  identifier: create_namespace
-                  spec:
-                    shell: Bash
-                    onDelegate: true
-                    source:
-                      type: Inline
+    - parallel:
+        - stage:
+            name: docker
+            identifier: docker
+            type: CI
+            spec:
+              cloneCodebase: true
+              platform:
+                os: Linux
+                arch: Amd64
+              runtime:
+                type: Cloud
+                spec: {}
+              execution:
+                steps:
+                  - parallel:
+                      - step:
+                          type: Background
+                          name: compose up
+                          identifier: compose_up
+                          spec:
+                            shell: Sh
+                            command: cd docker && docker compose up
+                            envVariables:
+                              test: test
+                              ACCOUNT_IDENTIFIER: <+account.identifier>
+                              ORG_IDENTIFIER: <+org.identifier>
+                              ADMIN_SERVICE_TOKEN: <+secrets.getValue("ADMIN_SERVICE_TOKEN")>
+                              AUTH_SECRET: <+secrets.getValue("AUTH_SECRET")>
+                              API_KEYS: <+secrets.getValue("API_KEYS")>
+                      - step:
+                          type: Run
+                          name: test health
+                          identifier: test_health
+                          spec:
+                            shell: Sh
+                            command: curl localhost:7000/health | jq .
+                          failureStrategies:
+                            - onFailure:
+                                errors:
+                                  - AllErrors
+                                action:
+                                  type: Retry
+                                  spec:
+                                    retryCount: 10
+                                    retryIntervals:
+                                      - 5s
+                                    onRetryFailure:
+                                      action:
+                                        type: MarkAsFailure
+                  - step:
+                      type: Run
+                      name: run test
+                      identifier: run_test
                       spec:
-                        script: |-
-                          export KUBECONFIG=${HARNESS_KUBE_CONFIG_PATH}
+                        connectorRef: org.harness_community_dockerhub
+                        image: python:3.12
+                        shell: Sh
+                        command: cd test && pip3 install -r requirements.txt && python3 test.py
+                        envVariables:
+                          FF_SDK_KEY: test
+                  - step:
+                      type: Run
+                      name: update service config
+                      identifier: update_service_config
+                      spec:
+                        connectorRef: org.harness_community_dockerhub
+                        image: hashicorp/terraform:1.4.6
+                        shell: Sh
+                        command: |-
+                          cd kubernetes
 
-                          kubectl create ns <+infra.namespace.toLowerCase()> --dry-run=client -o yaml | kubectl apply -f -
-                    environmentVariables: []
-                    outputVariables: []
-                    includeInfraSelectors: true
-                  timeout: 10m
-              - step:
-                  name: Rollout Deployment
-                  identifier: rolloutDeployment
-                  type: K8sRollingDeploy
-                  timeout: 10m
-                  spec:
-                    skipDryRun: false
-                    pruningEnabled: false
-            rollbackSteps:
-              - step:
-                  name: Rollback Rollout Deployment
-                  identifier: rollbackRolloutDeployment
-                  type: K8sRollingRollback
-                  timeout: 10m
-                  spec:
-                    pruningEnabled: false
-        tags: {}
-        failureStrategies:
-          - onFailure:
-              errors:
-                - AllErrors
-              action:
-                type: StageRollback
-        when:
-          pipelineStatus: All
+                          terraform init
+                          terraform apply -force
+                        envVariables:
+                          HARNESS_ACCOUNT_ID: <+account.identifier>
+                          HARNESS_PLATFORM_API_KEY: <+secrets.getValue("ADMIN_SERVICE_TOKEN")>
+              caching:
+                enabled: false
+                paths: []
+        - stage:
+            name: kubernetes
+            identifier: kubernetes
+            description: ""
+            type: Deployment
+            spec:
+              deploymentType: Kubernetes
+              service:
+                serviceRef: featureflagrelayproxy
+                serviceInputs:
+                  serviceDefinition:
+                    type: Kubernetes
+                    spec:
+                      artifacts:
+                        primary:
+                          primaryArtifactRef: <+input>
+                          sources: <+input>
+              environment:
+                environmentRef: development
+                deployToAll: false
+                infrastructureDefinitions:
+                  - identifier: gcp
+              execution:
+                steps:
+                  - step:
+                      type: ShellScript
+                      name: create namespace
+                      identifier: create_namespace
+                      spec:
+                        shell: Bash
+                        onDelegate: true
+                        source:
+                          type: Inline
+                          spec:
+                            script: |-
+                              export KUBECONFIG=${HARNESS_KUBE_CONFIG_PATH}
+
+                              kubectl create ns <+infra.namespace.toLowerCase()> --dry-run=client -o yaml # | kubectl apply -f -
+                        environmentVariables: []
+                        outputVariables: []
+                        includeInfraSelectors: true
+                      timeout: 10m
+                  - step:
+                      name: Rollout Deployment
+                      identifier: rolloutDeployment
+                      type: K8sRollingDeploy
+                      timeout: 10m
+                      spec:
+                        skipDryRun: false
+                        pruningEnabled: false
+                rollbackSteps:
+                  - step:
+                      name: Rollback Rollout Deployment
+                      identifier: rollbackRolloutDeployment
+                      type: K8sRollingRollback
+                      timeout: 10m
+                      spec:
+                        pruningEnabled: false
+            tags: {}
+            failureStrategies:
+              - onFailure:
+                  errors:
+                    - AllErrors
+                  action:
+                    type: StageRollback
+            when:
+              pipelineStatus: All
