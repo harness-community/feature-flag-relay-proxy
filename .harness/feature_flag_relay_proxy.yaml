@@ -31,7 +31,7 @@ pipeline:
                   identifier: compose_up
                   spec:
                     shell: Sh
-                    command: docker compose up
+                    command: cd docker && docker compose up
                     envVariables:
                       test: test
                       ACCOUNT_IDENTIFIER: <+account.identifier>
@@ -54,7 +54,7 @@ pipeline:
                     connectorRef: org.harness_community_dockerhub
                     image: python:3.12
                     shell: Sh
-                    command: python3 tests/test.py
+                    command: python3 test/test.py
                     envVariables:
                       FF_SDK_KEY: test
           sharedPaths:
