@@ -1,8 +1,8 @@
 service:
-  name: ff relay proxy
-  identifier: ff_relay_proxy
-  orgIdentifier: default
-  projectIdentifier: home_lab
+  name: feature-flag-relay-proxy
+  identifier: featureflagrelayproxy
+  orgIdentifier: Harness_Community
+  projectIdentifier: Feature_Flags
   serviceDefinition:
     spec:
       manifests:
@@ -13,14 +13,14 @@ service:
               store:
                 type: Github
                 spec:
-                  connectorRef: account.global
+                  connectorRef: org.harness_community_github
                   gitFetchType: Branch
                   paths:
-                    - deploy/ff-relay-proxy.yaml
-                  repoName: harness-community/feature-flag-relay-proxy
-                  branch: master
+                    - kubernetes/feature-flag-relay-proxy.yaml
+                  repoName: feature-flag-relay-proxy
+                  branch: feat/pipeline
               valuesPaths:
-                - deploy/values.yaml
+                - kubernetes/values.yaml
               skipResourceVersioning: false
               enableDeclarativeRollback: false
       artifacts:
@@ -28,9 +28,9 @@ service:
           primaryArtifactRef: <+input>
           sources:
             - spec:
-                connectorRef: account.dockerhub
+                connectorRef: org.harness_community_dockerhub
                 imagePath: harness/ff-proxy
-                tag: <+input>
+                tag: 1.0.2
                 digest: ""
               identifier: main
               type: DockerRegistry
