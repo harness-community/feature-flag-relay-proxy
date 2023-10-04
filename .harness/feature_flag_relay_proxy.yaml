@@ -68,21 +68,20 @@ pipeline:
                                     onRetryFailure:
                                       action:
                                         type: MarkAsFailure
-                  - parallel:
-                      - step:
-                          type: Run
-                          name: run test
-                          identifier: run_test
-                          spec:
-                            shell: Sh
-                            command: cd test && pip3 install -r requirements.txt && python3 toggle_flag_validate.py
-                            envVariables:
-                              FF_SDK_KEY: <+secrets.getValue("API_KEYS")>
-                              HARNESS_ACCOUNT_IDENTIFIER: <+account.identifier>
-                              HARNESS_ORGANIZATION_ID: <+org.identifier>
-                              HARNESS_PROJECT_ID: <+project.identifier>
-                              HARNESS_ENVIRONMENT_ID: development
-                              HARNESS_PLATFORM_API_KEY: <+secrets.getValue("ADMIN_SERVICE_TOKEN")>
+                  - step:
+                      type: Run
+                      name: run test
+                      identifier: run_test
+                      spec:
+                        shell: Sh
+                        command: cd test && pip3 install -r requirements.txt && python3 toggle_flag_validate.py
+                        envVariables:
+                          FF_SDK_KEY: <+secrets.getValue("API_KEYS")>
+                          HARNESS_ACCOUNT_IDENTIFIER: <+account.identifier>
+                          HARNESS_ORGANIZATION_ID: <+org.identifier>
+                          HARNESS_PROJECT_ID: <+project.identifier>
+                          HARNESS_ENVIRONMENT_ID: development
+                          HARNESS_PLATFORM_API_KEY: <+secrets.getValue("ADMIN_SERVICE_TOKEN")>
                   - step:
                       type: Run
                       name: update service config
@@ -93,7 +92,7 @@ pipeline:
                           cd kubernetes
 
                           data=$(cat service.yaml | sed -z 's/\n/\\n/g' | sed 's/"/\\"/g')
-                          
+
                           curl -i -X PUT \
                             'https://app.harness.io/v1/orgs/<+org.identifier>/projects/<+project.identifier>/services/feature_flag_relay_proxy' \
                             -H 'Content-Type: application/json' \
