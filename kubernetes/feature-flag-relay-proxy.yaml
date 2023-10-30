@@ -36,6 +36,11 @@ spec:
           value: {{ .Values.authSecret }}
         - name: API_KEYS
           value: {{ .Values.apiKeys }}
+        {{- if .Values.redis_address }}
+        - name: REDIS_ADDRESS
+          value: {{ .Values.redis_address }}
+        {{- end }}
+        
 
 ---
 apiVersion: v1
