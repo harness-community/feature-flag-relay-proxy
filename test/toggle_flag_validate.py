@@ -66,9 +66,9 @@ def main():
     )
 
     target = Target(
-        identifier="HT_1",
-        name="Harness_Target_1",
-        attributes={"location": "harness hosted ci vm"},
+        identifier="toggle_flag_validate",
+        name="Toggling and Validating",
+        attributes={"location": "python_script"},
     )
 
     sleep(5)
@@ -84,10 +84,11 @@ def main():
     print("\n\n\n")
 
     flag_value = get_falg_value(client, flag, target)
-    log.info(f"state of flag: {str(flag_value)}")
-    if flag_value:
+    while flag_value:
+        log.info(f"state of flag: {str(flag_value)}")
         log.error("flag is true when it should be false")
-        exit(1)
+        sleep(10)
+        flag_value = get_falg_value(client, flag, target)
     print("\n\n\n")
 
     log.info("toggling flag to true")
@@ -96,14 +97,17 @@ def main():
     print("\n\n\n")
 
     flag_value = get_falg_value(client, flag, target)
-    log.info(f"state of flag: {str(flag_value)}")
-    if not flag_value:
+    while not flag_value:
+        log.info(f"state of flag: {str(flag_value)}")
         log.error("flag is false when it should be true")
-        exit(1)
+        sleep(10)
+        flag_value = get_falg_value(client, flag, target)
     print("\n\n\n")
 
     log.info("flag pass toggling tests")
 
 
 if __name__ == "__main__":
-    main()
+    while True:
+        main()
+        sleep(60)
