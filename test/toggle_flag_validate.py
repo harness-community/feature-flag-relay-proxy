@@ -112,4 +112,4 @@ def main():
 if __name__ == "__main__":
     while True:
         main()
-        sleep(60)
+        sleep(int(getenv("LOOP_SECONDS")))
