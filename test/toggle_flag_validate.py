@@ -37,16 +37,16 @@ def toggle_flag(flag: str, state: bool = False):
     )
 
     if resp.status_code == 200:
-        log.info(f"flag toggled to {ff_state}")
+        log.info(f">>> flag toggled to {ff_state}")
     else:
-        log.error(f"failed to toggle flag: {resp.text}")
+        log.error(f">>>>>> failed to toggle flag: {resp.text}")
         exit(1)
 
 
 def get_falg_value(client: CfClient, flag: str, target: Target):
     flag_value = client.bool_variation(flag, target, None)
     if flag_value == None:
-        log.error("flag failed to resolve")
+        log.error(">>>>>> flag failed to resolve")
         exit(1)
 
     return flag_value
@@ -54,10 +54,10 @@ def get_falg_value(client: CfClient, flag: str, target: Target):
 
 def main():
     relay_proxy_address = getenv("RELAY_PROXY_ADDRESS", "http://localhost:7000")
-    log.info(f"connecting to proxy at {relay_proxy_address}")
+    log.info(f">>> connecting to proxy at {relay_proxy_address}")
 
     flag = getenv("FF_IDENTIFIER", "test")
-    log.info(f"resolving flag {flag}")
+    log.info(f">>> resolving flag {flag}")
 
     client = CfClient(
         getenv("FF_SDK_KEY"),
@@ -75,36 +75,36 @@ def main():
     print("\n\n\n")
 
     flag_value = get_falg_value(client, flag, target)
-    log.info(f"inital state of flag: {str(flag_value)}")
+    log.info(f">>> inital state of flag: {str(flag_value)}")
     print("\n\n\n")
 
-    log.info("toggling flag to false")
+    log.info(">>> toggling flag to false")
     toggle_flag(flag, False)
     sleep(5)
     print("\n\n\n")
 
     flag_value = get_falg_value(client, flag, target)
     while flag_value:
-        log.info(f"state of flag: {str(flag_value)}")
-        log.error("flag is true when it should be false")
+        log.info(f">>> state of flag: {str(flag_value)}")
+        log.error(">>>>>> flag is true when it should be false")
         sleep(10)
         flag_value = get_falg_value(client, flag, target)
     print("\n\n\n")
 
-    log.info("toggling flag to true")
+    log.info(">>> toggling flag to true")
     toggle_flag(flag, True)
     sleep(5)
     print("\n\n\n")
 
     flag_value = get_falg_value(client, flag, target)
     while not flag_value:
-        log.info(f"state of flag: {str(flag_value)}")
-        log.error("flag is false when it should be true")
+        log.info(f">>> state of flag: {str(flag_value)}")
+        log.error(">>>>>> flag is false when it should be true")
         sleep(10)
         flag_value = get_falg_value(client, flag, target)
     print("\n\n\n")
 
-    log.info("flag pass toggling tests")
+    log.info(">>> flag pass toggling tests")
 
 
 if __name__ == "__main__":
